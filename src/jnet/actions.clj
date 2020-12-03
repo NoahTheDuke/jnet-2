@@ -1,19 +1,14 @@
 (ns jnet.actions
-  (:require [jnet.player :refer [init-hand set-prompt]]))
+  (:require [jnet.player :as player]
+            [jnet.pipeline :as pipeline]))
 
 (defn keep-hand
-  [player]
-  (-> player
-      (assoc :ready-to-start true)
-      (set-prompt {:menu-title "Waiting for opponent to keep or mulligan"})))
+  [game side]
+  (update game side player/keep-hand))
 
 (defn mulligan-hand
-  [player]
-  (-> player
-      (assoc :ready-to-start true
-             :mulligan true)
-      (init-hand)
-      (set-prompt {:menu-title "Waiting for opponent to keep or mulligan"})))
+  [game side]
+  (update game side player/mulligan-hand))
 
 (def actions-list
   {"keep" keep-hand
@@ -23,6 +18,7 @@
   [game side command]
   (let [action (get actions-list command)]
     (if action
-      (update game side action)
-      (println "something broke" command))
-    ))
+      (-> game
+          (action side)
+          (pipeline/continue))
+      (println "something broke" command))))

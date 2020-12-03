@@ -53,6 +53,12 @@
                 :buttons (or buttons [])}]
     (assoc player :prompt prompt)))
 
+(defn clear-prompt
+  [player]
+  (assoc player :prompt {:select-card false
+                         :menu-title ""
+                         :buttons []}))
+
 (defn init-player
   [player]
   (let [mulligan-prompt {:menu-title "Keep starting hand?"
@@ -63,6 +69,20 @@
     (-> player
         (init-hand)
         (set-prompt mulligan-prompt))))
+
+(defn keep-hand
+  [player]
+  (-> player
+      (assoc :ready-to-start true)
+      (set-prompt {:menu-title "Waiting for opponent to keep or mulligan"})))
+
+(defn mulligan-hand
+  [player]
+  (-> player
+      (assoc :ready-to-start true
+             :mulligan true)
+      (init-hand)
+      (set-prompt {:menu-title "Waiting for opponent to keep or mulligan"})))
 
 (defn get-player-state
   [player side active-player?]

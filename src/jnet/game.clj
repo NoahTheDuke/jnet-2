@@ -1,10 +1,10 @@
 (ns jnet.game
   (:require [jnet.pipeline :refer [make-pipeline]]
-            [jnet.player :refer [get-player-state]]))
+            [jnet.player :as player]))
 
 (defn new-game
   [{:keys [name game-id corp runner]}]
-  {:active-player :runner
+  {:active-player :corp
    :corp corp
    :game-id game-id
    :log []
@@ -16,5 +16,13 @@
 (defn get-state
   [game]
   {:name (:name game)
-   :corp (get-player-state (:corp game))
-   :runner (get-player-state (:runner game))})
+   :corp (player/get-player-state (:corp game))
+   :runner (player/get-player-state (:runner game))})
+
+(defn active-player?
+  [game side]
+  (= side (:active-player game)))
+
+(defn set-prompt
+  [game side prompt]
+  (update game side player/set-prompt prompt))

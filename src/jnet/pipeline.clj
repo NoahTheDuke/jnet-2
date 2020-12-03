@@ -10,25 +10,12 @@
       :queue []
       :continue-step nil})))
 
-(comment
-  (make-pipeline)
-  (make-pipeline :asdf)
-  (make-pipeline [:asdf])
-  )
-
 (defn make-step
   [{:keys [continue step-fn card-clicked menu-command]}]
   {:continue (or continue false)
    :step-fn (or step-fn (constantly false))
    :card-clicked (or card-clicked (constantly false))
    :menu-command (or menu-command (constantly false))})
-
-(defn ui-prompt
-  [{:keys [active-prompt waiting-prompt]}]
-  {:completed false
-   :active-prompt (or active-prompt (constantly ""))
-   :waiting-prompt (or waiting-prompt "Waiting for opponent")
-   })
 
 (defn queue-step
   [game step]
@@ -41,12 +28,6 @@
 (defn cancel-step
   [game]
   (update-in game [:gp :pipeline] #(into [] (next %))))
-
-(comment
-  (-> {:gp (make-pipeline {:name "1"})}
-      (queue-step {:name "2"})
-      (queue-step {:name "3"})
-      (cancel-step)))
 
 (defn prepare-current-step
   [game]
@@ -61,21 +42,11 @@
       (let [step (get-current-step gp)
             continue? (:continue step)
             result (if (fn? continue?)
-                     (continue? game)
+                     (continue? game step)
                      continue?)]
         (assoc game :gp (assoc gp :continue-step result))))))
 
-(comment
-  (-> {:gp (make-pipeline {:continue false
-                           :step-fn (fn [game] 1)})}
-      (queue-step {:continue true
-                   :step-fn (fn [game] 2)})
-      (queue-step {:continue true
-                   :step-fn (fn [game] 3)})
-      (prepare-current-step)
-      clojure.pprint/pprint))
-
-(defn process-steps
+(defn continue
   [game]
   (let [{:keys [gp] :as game} (prepare-current-step game)]
     (if (:continue-step gp)
@@ -85,10 +56,6 @@
             (update-in [:gp :pipeline] #(into [] (next %)))
             (recur)))
       game)))
-
-(defn continue-next-step
-  [game]
-  (assoc-in game [:gp :pipeline 0 :continue] true))
 
 (defn draw
   [game side qty]
