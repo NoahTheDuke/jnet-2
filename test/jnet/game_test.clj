@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [jnet.game :refer :all]
             [jnet.pipeline :refer :all]
+            [jnet.actions :refer [process-action]]
             [test-helper :refer :all]))
 
 (deftest make-pipeline-test
@@ -41,3 +42,9 @@
                  (process-steps))]
     (is (= 7 (count (get-in game [:corp :hand]))))
     (is (= 1 (count (get-in game [:gp :pipeline]))))))
+
+(deftest start-of-game-test
+  (let [game (-> (make-game)
+                 (process-action :corp "keep"))]
+    (println (get-in game [:corp :prompt]))
+    ))

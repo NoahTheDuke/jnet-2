@@ -1,92 +1,77 @@
 (ns jnet.player)
 
-(defn new-corp
-  [user c-identity deck]
-  {:agenda-points 0
-   :agenda-points-req 7
-   :bad-publicity {:base 0
-                   :additional 0}
-   :clicks 0
-   :clicks-per-turn 3
-   :credits 5
+(defn new-player
+  [user identity deck]
+  {:deck-list deck
    :deck deck
    :discard []
    :hand []
-   :hand-size {:base 5
-               :total 5}
-   :identity c-identity
-   :play-area []
-   :ready-to-start false
-   :rfg []
-   :scored []
-   :set-aside []
-   :user user})
-
-(defn new-runner
-  [user r-identity deck]
-  {:agenda-points 0
-   :agenda-points-req 7
-   :brain-damage 0
-   :clicks 0
-   :clicks-per-turn 4
-   :credits 5
-   :deck deck
-   :discard []
-   :hand []
-   :hand-size {:base 5
-               :total 5}
-   :identity r-identity
-   :link 0
-   :memory 4
+   :hand-size 5
+   :identity identity
    :play-area []
    :prompt {:select-card false
             :menu-title ""
             :buttons []}
-   :ready-to-start false
    :rfg []
    :scored []
    :set-aside []
-   :tag {:base 0
-         :total 0
-         :is-tagged false}
-   :toast []
+   :credits 5
+   :clicks 0
+   :agenda-points 0
+   :ready-to-start false
    :user user})
 
+(defn new-corp
+  [user identity deck]
+  (merge
+    (new-player user identity deck)
+    {:bad-publicity {:base 0
+                     :additional 0}
+     :clicks-per-turn 3}))
+
+(defn new-runner
+  [user identity deck]
+  (merge
+    (new-player user identity deck)
+    {:brain-damage 0
+     :clicks-per-turn 4
+     :link 0
+     :memory 4
+     :tag 0}))
+
 (defn init-hand
-  [{:keys [deck] :as player}]
-  (let [[hand deck] (split-at 5 (shuffle deck))]
+  [{:keys [deck-list] :as player}]
+  (let [[hand deck] (split-at 5 (shuffle deck-list))]
     (assoc player
            :deck (into [] deck)
            :hand (into [] hand))))
 
 (defn set-prompt
-  [player new-prompt]
-  (let [prompt {:select-card (or (:select-card new-prompt) false)
-                :menu-title (or (:menu-title new-prompt) "")
-                :buttons (or (:buttons new-prompt) [])}]
+  [player {:keys [select-card menu-title buttons]}]
+  (let [prompt {:select-card (or select-card false)
+                :menu-title (or menu-title "")
+                :buttons (or buttons [])}]
     (assoc player :prompt prompt)))
 
-(defn get-corp-state
-  [player active-player?]
-  nil)
-
-(defn get-runner-state
-  [player active-player?]
-  nil)
+(defn init-player
+  [player]
+  (let [mulligan-prompt {:menu-title "Keep starting hand?"
+                         :buttons [{:command "keep"
+                                    :text "Keep hand"}
+                                   {:command "mulligan"
+                                    :text "Mulligan"}]}]
+    (-> player
+        (init-hand)
+        (set-prompt mulligan-prompt))))
 
 (defn get-player-state
   [player side active-player?]
-  (let [user (:user player)]
-    (merge
-      {:user (select-keys user [:username :id])
-       :identity (:identity player)
-       :deck-count (count (:deck player))
-       :hand (if active-player?
-               (:hand player)
-               (into [] (repeat (count (:hand player)) {})))
-       :discard (:discard player)
-       :prompt (when active-player? (:prompt player))
-       :agenda-points (:agenda-points player)}
-      (select-keys player [:play-area :scored :rfg :set-aside])
-      (get-corp-state player active-player?)
-      (get-runner-state player active-player?))))
+  (merge
+    {:user (select-keys (:user player) [:username :id])
+     :deck-count (count (:deck player))
+     :hand-count (count (:hand player))
+     :hand (when active-player? (:hand player))
+     :prompt (when active-player? (:prompt player))}
+    (select-keys player [:identity
+                         :discard :agenda-points :credits
+                         :play-area :scored :rfg :set-aside])))
