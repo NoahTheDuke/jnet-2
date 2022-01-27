@@ -26,10 +26,3 @@
        :name name
        :corp (init-player corp)
        :runner (init-player runner)})))
-
-(defn start-game
-  [game]
-  (if (and (:ready-to-start (:corp game))
-           (:ready-to-start (:runner game)))
-    (do (println "ready to start") game)
-    (do (println "not ready to start") game)))

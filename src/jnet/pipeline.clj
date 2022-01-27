@@ -1,14 +1,8 @@
 (ns jnet.pipeline)
 
-(defn make-pipeline
-  ([] (make-pipeline []))
-  ([steps]
-   (let [steps (if (sequential? steps)
-                 (into [] steps)
-                 [steps])]
-     {:pipeline steps
-      :queue []
-      :continue-step nil})))
+(defn make-pipeline []
+  {:pipeline []
+   :queue []})
 
 (defn make-step
   [{:keys [continue step-fn card-clicked menu-command]}]

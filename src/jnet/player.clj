@@ -11,6 +11,7 @@
    :play-area []
    :prompt {:select-card false
             :menu-title ""
+            :prompt-title ""
             :buttons []}
    :rfg []
    :scored []
